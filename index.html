@@ -1,546 +1,0 @@
-<!doctype html>
-<html lang="ar" dir="rtl">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1" />
-  <title>نظام محاسبة — ستايل الأمين 9 — ستايل الأمين 9 (بدون ضرائب)</title>
-  <link rel="stylesheet" href="app.css" />
-  <meta name="theme-color" content="#0b1220" />
-</head>
-<body>
-  <div id="toast" class="toast hidden"></div>
-
-  <!-- شاشة الدخول -->
-  <div id="loginView" class="login">
-    <div class="login-card">
-      <div class="brand">
-        <div class="logo ameen">AM9</div>
-        <div>
-          <h1>نظام محاسبة — ستايل الأمين 9</h1>
-          <p class="muted">ستايل قريب من الأمين 9 • يعمل بدون سيرفر • مناسب للموبايل والكمبيوتر</p>
-        </div>
-      </div>
-
-      <div class="login-form">
-        <label>اسم المستخدم</label>
-        <input id="loginUsername" type="text" inputmode="text" autocomplete="username" placeholder="مثال: admin" />
-        <label>كلمة المرور</label>
-        <input id="loginPassword" type="password" autocomplete="current-password" placeholder="••••••••" />
-        <button id="btnLogin" class="btn primary">دخول</button>
-
-        <div class="help">
-          <div class="pill">الدخول الافتراضي: <b>admin</b> / <b>admin123</b></div>
-          <div class="muted small">الأدمن فقط يضيف مستخدمين ويشاهد كل التقارير.</div>
-        </div>
-      </div>
-
-      <div class="login-footer muted small">
-        نسخة Static للنشر على GitHub Pages — البيانات محفوظة داخل المتصفح (LocalStorage).
-      </div>
-    </div>
-  </div>
-
-  <!-- التطبيق -->
-  <div id="appView" class="app hidden">
-    <header class="topbar">
-      <div class="topbar-left">
-        <button class="icon-btn" id="btnMenu" aria-label="القائمة">
-          <span class="hamburger"></span>
-        </button>
-        <div class="topbar-title">
-          <div id="companyNameTop" class="title">الشركة</div>
-          <div class="subtitle" id="roleBadge">—</div>
-        </div>
-      </div>
-
-      <div class="topbar-right">
-        <button class="btn ghost" id="btnBackup">نسخ احتياطي</button>
-        <button class="btn ghost" id="btnRestore">استعادة</button>
-        <button class="btn danger" id="btnLogout">خروج</button>
-      </div>
-    </header>
-
-    <div class="modulebar">
-      <button class="mbtn" data-go="dashboard">الرئيسية</button>
-      <button class="mbtn" data-go="sales">المبيعات</button>
-      <button class="mbtn" data-go="purchases">المشتريات</button>
-      <button class="mbtn" data-go="vouchers">السندات</button>
-      <button class="mbtn" data-go="moves">حركة مادة</button>
-      <button class="mbtn" data-go="stocktake">الجرد</button>
-      <button class="mbtn" data-go="statement">كشف حساب</button>
-      <button class="mbtn" data-go="gl">دفتر الأستاذ</button>
-    </div>
-
-
-    <div class="layout">
-      <aside id="sidebar" class="sidebar">
-        <div class="sidebar-head">
-          <div class="avatar" id="userAvatar">A</div>
-          <div>
-            <div class="sidebar-user" id="userNameSide">—</div>
-            <div class="muted small" id="userRoleSide">—</div>
-          </div>
-        </div>
-
-        <nav class="nav" id="nav"></nav>
-
-        <div class="sidebar-foot muted small">
-          <div>بدون ضرائب</div>
-          <div>البيانات محفوظة محلياً</div>
-        </div>
-      </aside>
-
-      <main class="main">
-        <!-- Dashboard -->
-        <section class="view" id="view_dashboard">
-          <div class="pagehead">
-            <h2>الرئيسية</h2>
-            <div class="actions">
-              <button class="btn" id="btnQuickSale">فاتورة مبيعات سريعة</button>
-              <button class="btn" id="btnQuickPurchase">فاتورة مشتريات سريعة</button>
-            </div>
-          </div>
-
-          <div class="grid cards">
-            <div class="card">
-              <div class="card-title">إجمالي المبيعات</div>
-              <div class="card-value" id="kpiSales">0</div>
-              <div class="muted small">بعد الخصم الممنوح</div>
-            </div>
-            <div class="card">
-              <div class="card-title">إجمالي المشتريات</div>
-              <div class="card-value" id="kpiPurchases">0</div>
-              <div class="muted small">بعد الخصم المكتسب</div>
-            </div>
-            <div class="card">
-              <div class="card-title">قيمة المخزون</div>
-              <div class="card-value" id="kpiStockValue">0</div>
-              <div class="muted small">حسب متوسط تكلفة الشراء</div>
-            </div>
-            <div class="card">
-              <div class="card-title">آخر تحديث</div>
-              <div class="card-value small" id="kpiUpdated">—</div>
-              <div class="muted small">حسب بيانات المتصفح</div>
-            </div>
-          </div>
-
-          <div class="grid two">
-            <div class="card">
-              <div class="card-title">أحدث الحركات</div>
-              <div id="recentMoves" class="list"></div>
-            </div>
-            <div class="card">
-              <div class="card-title">أحدث المستندات</div>
-              <div id="recentDocs" class="list"></div>
-            </div>
-          </div>
-        </section>
-
-        <!-- Company -->
-        <section class="view hidden" id="view_company">
-          <div class="pagehead">
-            <h2>بيانات الشركة</h2>
-            <div class="actions">
-              <button class="btn primary" id="btnSaveCompany">حفظ</button>
-            </div>
-          </div>
-
-          <div class="form-grid">
-            <div class="field"><label>اسم الشركة</label><input id="companyName" type="text" placeholder="اسم الشركة" /></div>
-            <div class="field"><label>الهاتف</label><input id="companyPhone" type="tel" placeholder="010..." /></div>
-
-        <div class="field">
-          <label>شعار الشركة (صورة)</label>
-          <input id="companyLogoFile" type="file" accept="image/*" />
-          <div class="muted small mt">يتم حفظ الشعار داخل المتصفح (بدون روابط).</div>
-          <div class="logo-preview" id="companyLogoPreviewWrap">
-            <img id="companyLogoPreview" alt="شعار الشركة" />
-          </div>
-        </div>
-
-            <div class="field"><label>العنوان</label><input id="companyAddress" type="text" placeholder="العنوان" /></div>
-            <div class="field"><label>ملاحظة تظهر في الطباعة</label><input id="companyNote" type="text" placeholder="شكراً لتعاملكم معنا" /></div>
-          </div>
-        </section>
-
-        <!-- Accounts -->
-        <section class="view hidden" id="view_accounts">
-          <div class="pagehead">
-            <h2>دليل الحسابات</h2>
-            <div class="actions">
-              <button class="btn primary" id="btnAddAccount">إضافة حساب</button>
-              <button class="btn" id="btnPrintAccounts">طباعة</button>
-            </div>
-          </div>
-
-          <div class="toolbar">
-            <input id="accountsSearch" class="search" placeholder="بحث بالاسم أو الرقم..." />
-          </div>
-
-          <div class="table-wrap">
-            <table class="table" id="accountsTable">
-              <thead>
-                <tr>
-                  <th>رقم</th><th>اسم الحساب</th><th>النوع</th><th>الرصيد الافتتاحي</th><th class="ta-left">إجراءات</th>
-                </tr>
-              </thead>
-              <tbody></tbody>
-            </table>
-          </div>
-        </section>
-
-        <!-- Items -->
-        <section class="view hidden" id="view_items">
-          <div class="pagehead">
-            <h2>دليل المواد</h2>
-            <div class="actions">
-              <button class="btn primary" id="btnAddItem">إضافة مادة</button>
-              <button class="btn" id="btnPrintItems">طباعة</button>
-            </div>
-          </div>
-
-          <div class="toolbar">
-            <input id="itemsSearch" class="search" placeholder="بحث بالمادة أو الكود..." />
-          </div>
-
-          <div class="table-wrap">
-            <table class="table" id="itemsTable">
-              <thead>
-                <tr>
-                  <th>كود</th><th>اسم المادة</th><th>الوحدة</th><th>سعر البيع</th><th>سعر الشراء</th><th class="ta-left">إجراءات</th>
-                </tr>
-              </thead>
-              <tbody></tbody>
-            </table>
-          </div>
-        </section>
-
-        <!-- Warehouses -->
-        <section class="view hidden" id="view_wh">
-          <div class="pagehead">
-            <h2>المستودعات</h2>
-            <div class="actions">
-              <button class="btn primary" id="btnAddWh">إضافة مستودع</button>
-              <button class="btn" id="btnPrintWh">طباعة</button>
-            </div>
-          </div>
-
-          <div class="toolbar">
-            <input id="whSearch" class="search" placeholder="بحث..." />
-          </div>
-
-          <div class="table-wrap">
-            <table class="table" id="whTable">
-              <thead>
-                <tr><th>كود</th><th>اسم المستودع</th><th class="ta-left">إجراءات</th></tr>
-              </thead>
-              <tbody></tbody>
-            </table>
-          </div>
-        </section>
-
-        <!-- Sales -->
-        <section class="view hidden" id="view_sales">
-          <div class="pagehead">
-            <h2>فواتير المبيعات</h2>
-            <div class="actions">
-              <button class="btn primary" id="btnNewSale">فاتورة جديدة</button>
-              <button class="btn" id="btnPrintSalesList">طباعة قائمة</button>
-            </div>
-          </div>
-
-          <div class="toolbar">
-            <input id="salesSearch" class="search" placeholder="بحث برقم الفاتورة أو اسم العميل..." />
-          </div>
-
-          <div class="table-wrap">
-            <table class="table" id="salesTable">
-              <thead>
-                <tr><th>رقم</th><th>تاريخ</th><th>العميل</th><th>المستودع</th><th>الإجمالي</th><th>خصم ممنوح</th><th>الصافي</th><th class="ta-left">إجراءات</th></tr>
-              </thead>
-              <tbody></tbody>
-            </table>
-          </div>
-
-          <div class="muted small mt">الخصم الممنوح يُخصم من إجمالي الفاتورة. يتم تسجيل حركة مادة (خروج) حسب المستودع.</div>
-        </section>
-
-        <!-- Purchases -->
-        <section class="view hidden" id="view_purchases">
-          <div class="pagehead">
-            <h2>فواتير المشتريات</h2>
-            <div class="actions">
-              <button class="btn primary" id="btnNewPurchase">فاتورة جديدة</button>
-              <button class="btn" id="btnPrintPurchasesList">طباعة قائمة</button>
-            </div>
-          </div>
-
-          <div class="toolbar">
-            <input id="purchasesSearch" class="search" placeholder="بحث برقم الفاتورة أو اسم المورد..." />
-          </div>
-
-          <div class="table-wrap">
-            <table class="table" id="purchasesTable">
-              <thead>
-                <tr><th>رقم</th><th>تاريخ</th><th>المورد</th><th>المستودع</th><th>الإجمالي</th><th>خصم مكتسب</th><th>الصافي</th><th class="ta-left">إجراءات</th></tr>
-              </thead>
-              <tbody></tbody>
-            </table>
-          </div>
-
-          <div class="muted small mt">الخصم المكتسب يُخصم من إجمالي المشتريات. يتم تسجيل حركة مادة (دخول) حسب المستودع.</div>
-        </section>
-
-        <!-- Vouchers -->
-        <section class="view hidden" id="view_vouchers">
-          <div class="pagehead">
-            <h2>السندات</h2>
-            <div class="actions">
-              <button class="btn primary" id="btnNewVoucher">سند جديد</button>
-              <button class="btn" id="btnPrintVouchersList">طباعة قائمة</button>
-            </div>
-          </div>
-
-          <div class="toolbar">
-            <input id="vouchersSearch" class="search" placeholder="بحث برقم السند أو الحساب..." />
-          </div>
-
-          <div class="table-wrap">
-            <table class="table" id="vouchersTable">
-              <thead>
-                <tr><th>رقم</th><th>تاريخ</th><th>النوع</th><th>الحساب</th><th>المبلغ</th><th>البيان</th><th class="ta-left">إجراءات</th></tr>
-              </thead>
-              <tbody></tbody>
-            </table>
-          </div>
-        </section>
-
-        <!-- Item Movement Report -->
-        <section class="view hidden" id="view_moves">
-          <div class="pagehead">
-            <h2>حركة مادة (تقرير)</h2>
-            <div class="actions">
-              <button class="btn" id="btnPrintMoves">طباعة</button>
-            </div>
-          </div>
-
-          <div class="toolbar row">
-            <div class="field-inline"><label class="muted small">المادة</label><select id="movesItem"></select></div>
-            <div class="field-inline"><label class="muted small">المستودع</label><select id="movesWh"></select></div>
-            <div class="field-inline"><label class="muted small">من</label><input id="movesFrom" type="date" /></div>
-            <div class="field-inline"><label class="muted small">إلى</label><input id="movesTo" type="date" /></div>
-            <button class="btn primary" id="btnRunMoves">عرض</button>
-          </div>
-
-          <div class="grid cards mt">
-            <div class="card"><div class="card-title">دخول</div><div class="card-value" id="mvIn">0</div></div>
-            <div class="card"><div class="card-title">خروج</div><div class="card-value" id="mvOut">0</div></div>
-            <div class="card"><div class="card-title">الرصيد</div><div class="card-value" id="mvBal">0</div></div>
-          </div>
-
-          <div class="table-wrap mt">
-            <table class="table" id="movesTable">
-              <thead><tr><th>تاريخ</th><th>المستند</th><th>مستودع</th><th>نوع</th><th>كمية</th><th>تكلفة</th><th>ملاحظة</th></tr></thead>
-              <tbody></tbody>
-            </table>
-          </div>
-        </section>
-
-        <!-- Stocktake -->
-        <section class="view hidden" id="view_stocktake">
-          <div class="pagehead">
-            <h2>جرد مواد (تقرير)</h2>
-            <div class="actions">
-              <button class="btn" id="btnPrintStocktake">طباعة</button>
-            </div>
-          </div>
-
-          <div class="toolbar row">
-            <div class="field-inline"><label class="muted small">المستودع</label><select id="stWh"></select></div>
-            <button class="btn primary" id="btnRunStocktake">عرض</button>
-          </div>
-
-          <div class="table-wrap mt">
-            <table class="table" id="stocktakeTable">
-              <thead><tr><th>كود</th><th>المادة</th><th>وحدة</th><th>رصيد</th><th>متوسط تكلفة</th><th>قيمة</th></tr></thead>
-              <tbody></tbody>
-            </table>
-          </div>
-        </section>
-
-        <!-- Cost Centers -->
-        <section class="view hidden" id="view_cc">
-          <div class="pagehead">
-            <h2>مراكز الكلفة</h2>
-            <div class="actions">
-              <button class="btn primary" id="btnAddCC">إضافة مركز</button>
-              <button class="btn" id="btnPrintCC">طباعة</button>
-            </div>
-          </div>
-
-          <div class="toolbar">
-            <input id="ccSearch" class="search" placeholder="بحث..." />
-          </div>
-
-          <div class="table-wrap">
-            <table class="table" id="ccTable">
-              <thead><tr><th>كود</th><th>اسم المركز</th><th class="ta-left">إجراءات</th></tr></thead>
-              <tbody></tbody>
-            </table>
-          </div>
-
-          <div class="muted small mt">يمكن ربط مركز كلفة بالسند أو القيد اليدوي.</div>
-        </section>
-
-        <!-- Journal Entries -->
-        <section class="view hidden" id="view_journal">
-          <div class="pagehead">
-            <h2>قيود يومية</h2>
-            <div class="actions">
-              <button class="btn primary" id="btnNewJournal">قيد جديد</button>
-              <button class="btn" id="btnPrintJournalList">طباعة قائمة</button>
-            </div>
-          </div>
-
-          <div class="toolbar">
-            <input id="journalSearch" class="search" placeholder="بحث برقم القيد أو البيان..." />
-          </div>
-
-          <div class="table-wrap">
-            <table class="table" id="journalTable">
-              <thead><tr><th>رقم</th><th>تاريخ</th><th>البيان</th><th>مدين</th><th>دائن</th><th class="ta-left">إجراءات</th></tr></thead>
-              <tbody></tbody>
-            </table>
-          </div>
-
-          <div class="muted small mt">قيود النظام من الفواتير والسندات تُنشأ تلقائياً. القيود اليدوية للأدمن.</div>
-        </section>
-
-        <!-- General Ledger -->
-        <section class="view hidden" id="view_gl">
-          <div class="pagehead">
-            <h2>دفتر الأستاذ</h2>
-            <div class="actions">
-              <button class="btn" id="btnPrintGL">طباعة</button>
-            </div>
-          </div>
-
-          <div class="toolbar row">
-            <div class="field-inline"><label class="muted small">الحساب</label><select id="glAccount"></select></div>
-            <div class="field-inline"><label class="muted small">من</label><input id="glFrom" type="date" /></div>
-            <div class="field-inline"><label class="muted small">إلى</label><input id="glTo" type="date" /></div>
-            <button class="btn primary" id="btnRunGL">عرض</button>
-          </div>
-
-          <div class="grid cards mt">
-            <div class="card"><div class="card-title">مدين</div><div class="card-value" id="glDebit">0</div></div>
-            <div class="card"><div class="card-title">دائن</div><div class="card-value" id="glCredit">0</div></div>
-            <div class="card"><div class="card-title">الرصيد</div><div class="card-value" id="glBalance">0</div></div>
-          </div>
-
-          <div class="table-wrap mt">
-            <table class="table" id="glTable">
-              <thead><tr><th>تاريخ</th><th>قيد/مستند</th><th>بيان</th><th>مركز كلفة</th><th>مدين</th><th>دائن</th></tr></thead>
-              <tbody></tbody>
-            </table>
-          </div>
-        </section>
-
-        <!-- Statement (kept) -->
-        <section class="view hidden" id="view_statement">
-          <div class="pagehead">
-            <h2>كشف حساب</h2>
-            <div class="actions">
-              <button class="btn" id="btnPrintStatement">طباعة</button>
-            </div>
-          </div>
-
-          <div class="toolbar row">
-            <div class="field-inline"><label class="muted small">الحساب</label><select id="statementAccount"></select></div>
-            <div class="field-inline"><label class="muted small">من</label><input id="statementFrom" type="date" /></div>
-            <div class="field-inline"><label class="muted small">إلى</label><input id="statementTo" type="date" /></div>
-            <button class="btn primary" id="btnRunStatement">عرض</button>
-          </div>
-
-          <div class="grid cards mt">
-            <div class="card"><div class="card-title">مدين</div><div class="card-value" id="stDebit">0</div></div>
-            <div class="card"><div class="card-title">دائن</div><div class="card-value" id="stCredit">0</div></div>
-            <div class="card"><div class="card-title">الرصيد</div><div class="card-value" id="stBalance">0</div></div>
-          </div>
-
-          <div class="table-wrap mt">
-            <table class="table" id="statementTable">
-              <thead><tr><th>تاريخ</th><th>المستند</th><th>بيان</th><th>مدين</th><th>دائن</th></tr></thead>
-              <tbody></tbody>
-            </table>
-          </div>
-        </section>
-
-        <!-- Users -->
-        <section class="view hidden" id="view_users">
-          <div class="pagehead">
-            <h2>المستخدمون</h2>
-            <div class="actions">
-              <button class="btn primary" id="btnAddUser">إضافة مستخدم</button>
-            </div>
-          </div>
-
-          <div class="table-wrap">
-            <table class="table" id="usersTable">
-              <thead><tr><th>اسم المستخدم</th><th>الدور</th><th class="ta-left">إجراءات</th></tr></thead>
-              <tbody></tbody>
-            </table>
-          </div>
-
-          <div class="muted small mt">المستخدم العادي يرى فقط: فواتير + سندات + الرئيسية.</div>
-        </section>
-
-        <!-- Modal -->
-        <div id="modal" class="modal hidden" role="dialog" aria-modal="true">
-          <div class="modal-card">
-            <div class="modal-head">
-              <h3 id="modalTitle">—</h3>
-              <button class="icon-btn" id="btnModalClose" aria-label="إغلاق">✕</button>
-            </div>
-            <div id="modalBody" class="modal-body"></div>
-            <div id="modalFoot" class="modal-foot"></div>
-          </div>
-        </div>
-
-        <input id="fileRestore" type="file" accept="application/json" class="hidden" />
-      </main>
-    </div>
-  </div>
-
-  <script src="app.js"></script>
-
-    
-<!-- Mobile Quick Dock (Ameen-style) -->
-<div class="mobile-dock" id="mobileDock" aria-label="شريط سريع">
-  <div class="dock-scroll">
-    <button class="dock-item" data-action="newSale" aria-label="إضافة فاتورة مبيعات">
-      <div class="dock-ico">🧾</div>
-      <div class="dock-txt">مبيعات</div>
-    </button>
-    <button class="dock-item" data-action="newPurchase" aria-label="إضافة فاتورة مشتريات">
-      <div class="dock-ico">📥</div>
-      <div class="dock-txt">مشتريات</div>
-    </button>
-    <button class="dock-item" data-action="newCustomer" aria-label="إضافة عميل جديد">
-      <div class="dock-ico">👤</div>
-      <div class="dock-txt">عميل</div>
-    </button>
-    <button class="dock-item" data-action="receipt" aria-label="إضافة سند قبض">
-      <div class="dock-ico">💵</div>
-      <div class="dock-txt">قبض</div>
-    </button>
-    <button class="dock-item" data-action="payment" aria-label="إضافة سند دفع">
-      <div class="dock-ico">💳</div>
-      <div class="dock-txt">دفع</div>
-    </button>
-  </div>
-  <div class="dock-indicator" aria-hidden="true"></div>
-</div>
-
-</body>
-</html>
